@@ -1309,24 +1309,28 @@ def remove_dir(path):
 def remove_all(path, pattern='*', keep_folder=False, recursive=False):
     """ Remove folder and all its content (optionally recursive)
     """
-    if os.path.exists(path):
-        files = globber(path, pattern)
-        if pattern == '*' and not sabnzbd.WIN32:
-            files.extend(globber(path, '.*'))
-
-        for f in files:
-            if os.path.isfile(f):
+    try:
+        if os.path.exists(path):
+            files = globber(path, pattern)
+            if pattern == '*' and not sabnzbd.WIN32:
+                files.extend(globber(path, '.*'))
+ 
+            for f in files:
+                if os.path.isfile(f):
+                    try:
+                        os.remove(f)
+                    except:
+                        logging.info('Cannot remove file %s', f)
+                elif recursive:
+                    remove_all(f, pattern, False, True)
+            if not keep_folder:
                 try:
-                    os.remove(f)
+                    os.rmdir(path)
                 except:
-                    logging.info('Cannot remove file %s', f)
-            elif recursive:
-                remove_all(f, pattern, False, True)
-        if not keep_folder:
-            try:
-                os.rmdir(path)
-            except:
-                logging.info('Cannot remove folder %s', path)
+                    logging.info('Cannot remove folder %s', path)
+    except:
+	logging.error(Ta('Unexpected error removing folder %s'), path)
+        logging.info("Traceback: ", exc_info = True)
 
 
 def is_writable(path):
